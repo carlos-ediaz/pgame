@@ -10,6 +10,7 @@ from bullet import Bullet
 from alien import Alien
 from star import Star
 from game_stats import GameStats
+from explosion import Explosion
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -24,11 +25,13 @@ class AlienInvasion:
         pygame.display.set_caption("Alien Invasion")
 
         self.stats = GameStats(self)
-
         self.ship = Ship(self)
+
+        self.explosions = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
+
         self._create_stars()
         self._create_fleet()
         
@@ -99,6 +102,8 @@ class AlienInvasion:
             bullet.draw_bullet()
 
         self.aliens.draw(self.screen)
+        self.explosions.update()
+        self.explosions.draw(self.screen)
         
         # Make the most recently drawn screen visible.
         pygame.display.flip()
@@ -113,6 +118,13 @@ class AlienInvasion:
 
     def _check_bullet_alien_colisions(self):
         collisions = pygame.sprite.groupcollide(self.bullets,self.aliens,True,True)
+        if collisions:
+            for aliens in collisions.values():
+                for alien in aliens:
+                    # Crear una explosión en la posición del alien destruido
+                    explosion = Explosion(self, alien.rect.center)
+                    self.explosions.add(explosion)
+
         if not self.aliens:
             self.bullets.empty()
             self._create_fleet()
@@ -194,7 +206,6 @@ class AlienInvasion:
     
     def _create_star(self, rows, columns, total_stars):
         
-        print("Col: ",columns, " -- Rows: ", rows)
         for i in range(total_stars):
             star= Star(self)
             star_width, star_height = star.rect.size
