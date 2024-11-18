@@ -37,6 +37,7 @@ class AlienInvasion:
             self._check_events()
             self.ship.update()
             self._update_bullets()
+            self._update_aliens()
             self.bullets.update()
             self._update_screen()
 
@@ -91,7 +92,7 @@ class AlienInvasion:
             bullet.draw_bullet()
 
         self.aliens.draw(self.screen)
-
+        self.stars.draw(self.screen)
         # Make the most recently drawn screen visible.
         pygame.display.flip()
 
@@ -123,6 +124,21 @@ class AlienInvasion:
         alien.rect.y = alien.rect.height + 2 *alien_height*row_number
         self.aliens.add(alien)
 
+    def _update_aliens(self):
+        self._check_fleet_edges()
+        self.aliens.update()
+
+    def _check_fleet_edges(self):
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
+
+    def _change_fleet_direction(self):
+        for alien in self.aliens.sprites():
+            alien.rect.y+=self.settings.fleet_drop_speed
+        self.settings.fleet_direction*=-1
+
     def _create_stars(self):
         star = Star(self)
         star_width, star_height = star.rect.size
@@ -136,12 +152,6 @@ class AlienInvasion:
     
     def _create_star(self, rows, columns, total_stars):
         
-        #alien= Alien(self)
-        #alien_width, alien_height = alien.rect.size
-        #alien.x = alien_width + 2*alien_width *alien_number
-        #alien.rect.x = alien.x
-        #alien.rect.y = alien.rect.height + 2 *alien_height*row_number
-        #self.aliens.add(alien)
         print("Col: ",columns, " -- Rows: ", rows)
         for i in range(total_stars):
             star= Star(self)
@@ -150,7 +160,7 @@ class AlienInvasion:
             row=randint(0,rows)
             star.rect.x = star_width*col
             star.rect.y = star_height*row
-            self.aliens.add(star)
+            self.stars.add(star)
 
         
 

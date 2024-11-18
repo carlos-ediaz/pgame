@@ -12,5 +12,10 @@ class Settings:
         self.bullet_color = (60, 60, 60)
         self.bullets_allowed = 5
 
+        #Alien
+        self.alien_speed = 1.0
+        self.fleet_drop_speed = 10
+        self.fleet_direction =1#1 is right, -1 is left
+
         #Stars
         self.number_of_stars=100
