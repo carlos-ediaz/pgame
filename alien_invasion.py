@@ -5,6 +5,10 @@ from settings import Settings
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+from star import Star
+
+from random import randint
+random_number = randint(-10, 10)
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -18,11 +22,14 @@ class AlienInvasion:
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("Alien Invasion")
 
+        
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
-
+        self.stars = pygame.sprite.Group()
+        self._create_stars()
         self._create_fleet()
+        
 
     def run_game(self):
         """Start the main loop for the game."""
@@ -97,19 +104,47 @@ class AlienInvasion:
 
     def _create_fleet(self):
         alien = Alien(self)
-        alien_width = alien.rect.width
-        available_space_x = self.settings.screen_width - (2*alien_width)
+        alien_width, alien_height = alien.rect.size
+        available_space_x = self.settings.screen_width - (alien_width)
         number_aliens_x = available_space_x // (2 * alien_width)
 
-        for alien_number in range(number_aliens_x):
-            self._create_alien(alien_number)
+        ship_height = self.ship.rect.height
+        available_space_y = (self.settings.screen_height - (3*alien_height) - ship_height)
+        number_rows = available_space_y // (2*alien_height)
 
-    def _create_alien(self, alien_number):
+        for row_number in range(number_rows):
+            for alien_number in range (number_aliens_x):
+                self._create_alien(alien_number, row_number)
+
+    def _create_alien(self, alien_number, row_number):
         alien= Alien(self)
-        alien_width = alien.rect.width
-        alien.x = alien_width + 2 *alien_width *alien_number
+        alien_width, alien_height = alien.rect.size
+        alien.x = alien_width + 2*alien_width *alien_number
         alien.rect.x = alien.x
+        alien.rect.y = alien.rect.height + 2 *alien_height*row_number
         self.aliens.add(alien)
+
+    def _create_stars(self):
+        star = Star(self)
+        star_width, star_height = star.rect.size
+        available_space_x = self.settings.screen_width
+        number_stars_x = available_space_x // (star_width)
+
+        available_space_y = self.settings.screen_height
+        number_rows = available_space_y // (star_height)
+ 
+        for row_number in range(number_rows):
+            for star_number in range (number_stars_x):
+                self._create_star(star_number, row_number)
+    
+    def _create_star(self, star_number, row_number):
+        star= Star(self)
+        star_width, star_height = star.rect.size
+        star.x = star_width *star_number
+        star.rect.x = star.x
+        star.rect.y = star.rect.height + star_height*row_number
+        self.aliens.add(star)
+
 if __name__ == '__main__':
     # Make a game instance, and run the game.
     ai = AlienInvasion()

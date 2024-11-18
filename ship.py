@@ -14,8 +14,8 @@ class Ship:
         self.rect = self.image.get_rect()
 
         #Start each new ship at the bottom center of the screen
-        #self.rect.midbottom = self.screen_rect.midbottom
-        self.rect.center = self.screen_rect.center
+        self.rect.midbottom = self.screen_rect.midbottom
+        #self.rect.center = self.screen_rect.center
 
 
         #Decimal value for the ship's position
@@ -29,7 +29,6 @@ class Ship:
         self.moving_down = False
 
     def update(self):
-        print(self.screen_rect)
         if self.moving_right and self.rect.right < self.screen_rect.right:
             self.x += self.settings.ship_speed
         if self.moving_left and self.rect.left > 0:
