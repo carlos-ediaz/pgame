@@ -8,7 +8,6 @@ from alien import Alien
 from star import Star
 
 from random import randint
-random_number = randint(-10, 10)
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -132,18 +131,28 @@ class AlienInvasion:
 
         available_space_y = self.settings.screen_height
         number_rows = available_space_y // (star_height)
- 
-        for row_number in range(number_rows):
-            for star_number in range (number_stars_x):
-                self._create_star(star_number, row_number)
+
+        self._create_star(number_rows, number_stars_x, self.settings.number_of_stars)
     
-    def _create_star(self, star_number, row_number):
-        star= Star(self)
-        star_width, star_height = star.rect.size
-        star.x = star_width *star_number
-        star.rect.x = star.x
-        star.rect.y = star.rect.height + star_height*row_number
-        self.aliens.add(star)
+    def _create_star(self, rows, columns, total_stars):
+        
+        #alien= Alien(self)
+        #alien_width, alien_height = alien.rect.size
+        #alien.x = alien_width + 2*alien_width *alien_number
+        #alien.rect.x = alien.x
+        #alien.rect.y = alien.rect.height + 2 *alien_height*row_number
+        #self.aliens.add(alien)
+        print("Col: ",columns, " -- Rows: ", rows)
+        for i in range(total_stars):
+            star= Star(self)
+            star_width, star_height = star.rect.size
+            col=randint(0,columns)
+            row=randint(0,rows)
+            star.rect.x = star_width*col
+            star.rect.y = star_height*row
+            self.aliens.add(star)
+
+        
 
 if __name__ == '__main__':
     # Make a game instance, and run the game.
