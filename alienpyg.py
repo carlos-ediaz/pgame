@@ -3,10 +3,9 @@ import pygame
 from time import sleep
 from random import randint
 import asyncio
-from fastapi import FastAPI
-from threading import Thread
 
 from settings import Settings
+
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
@@ -14,10 +13,6 @@ from star import Star
 from game_stats import GameStats
 from explosion import Explosion
 
-# Crear la aplicación FastAPI
-app = FastAPI()
-
-# Clase del juego
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
 
@@ -224,17 +219,9 @@ class AlienInvasion:
             star.rect.y = star_height*row
             self.stars.add(star)
 
-# Crear una instancia del juego
-game = AlienInvasion()
 
-# Usar un subproceso para ejecutar el juego
-def run_game():
-    asyncio.run(game.run_game())
-
-game_thread = Thread(target=run_game)
-game_thread.start()
-
-# Rutas FastAPI
-@app.get("/")
-def read_root():
-    return {"message": "Alien Invasion is running!"}
+if __name__ == '__main__':
+    # Make a game instance, and run the game.
+    ai = AlienInvasion()
+    asyncio.run(ai.run_game())
+    #await ai.run_game()
