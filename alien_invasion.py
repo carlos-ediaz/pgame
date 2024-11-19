@@ -1,7 +1,9 @@
 import sys
 import pygame
+import random
 from time import sleep
 from random import randint
+import asyncio
 
 from settings import Settings
 
@@ -11,6 +13,7 @@ from alien import Alien
 from star import Star
 from game_stats import GameStats
 from explosion import Explosion
+from asteroid import Asteroid
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -32,24 +35,39 @@ class AlienInvasion:
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
+        self.asteroids = pygame.sprite.Group()
+        self.next_asteroid_time = pygame.time.get_ticks() + random.randint(self.settings.min_time, self.settings.max_time)
 
         self._create_stars()
+        self._create_asteroids()
         self._create_fleet()
         
 
-    def run_game(self):
+    async def run_game(self):
         """Start the main loop for the game."""
     
         while True:
             self._check_events()
-
+            running=1
             if self.stats.game_active:
                 self.ship.update()
                 self._update_bullets()
                 self._update_aliens()
+                current_time = pygame.time.get_ticks()
+                if current_time >= self.next_asteroid_time:
+                    self._create_asteroids()
+                    self.next_asteroid_time = current_time + random.randint(self.settings.min_time, self.settings.max_time)
+
+                # Actualizar asteroides
+                self.asteroids.update()
             
             self.bullets.update()
             self._update_screen()
+
+            await asyncio.sleep(0)
+            if not running:
+                pygame.quit()
+                return
 
     def _check_events(self):
         # Watch for keyboard and mouse events.
@@ -97,6 +115,7 @@ class AlienInvasion:
         #Redraw the screen:
         self.screen.fill(self.settings.bg_color)
         self.stars.draw(self.screen)
+        self.asteroids.draw(self.screen)
         self.ship.blitme() #Draw the ship on the screen
 
         for bullet in self.bullets.sprites():
@@ -216,7 +235,12 @@ class AlienInvasion:
             star.rect.y = star_height*row
             self.stars.add(star)
 
+    def _create_asteroids(self):
+        asteroid = Asteroid(self)
+        self.asteroids.add(asteroid)
+
 if __name__ == '__main__':
     # Make a game instance, and run the game.
     ai = AlienInvasion()
-    ai.run_game()
+    #ai.run_game()
+    asyncio.run(ai.run_game())

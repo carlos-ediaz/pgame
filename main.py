@@ -1,26 +1,23 @@
 import sys
 import pygame
+import random
 from time import sleep
 from random import randint
 import asyncio
-from fastapi import FastAPI
-from threading import Thread
 
 from settings import Settings
+
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
 from star import Star
 from game_stats import GameStats
 from explosion import Explosion
+from asteroid import Asteroid
 
-# Crear la aplicación FastAPI
-app = FastAPI()
-
-# Clase del juego
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
-
+ 
     def __init__(self):
         """Initialize the game, and create game resources."""
         pygame.init()
@@ -38,20 +35,31 @@ class AlienInvasion:
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
+        self.asteroids = pygame.sprite.Group()
+        self.next_asteroid_time = pygame.time.get_ticks() + random.randint(self.settings.min_time, self.settings.max_time)
 
         self._create_stars()
-        self._create_fleet()   
+        self._create_asteroids()
+        self._create_fleet()
+        
 
     async def run_game(self):
         """Start the main loop for the game."""
-        running = 1
+    
         while True:
             self._check_events()
-
+            running=1
             if self.stats.game_active:
                 self.ship.update()
                 self._update_bullets()
                 self._update_aliens()
+                current_time = pygame.time.get_ticks()
+                if current_time >= self.next_asteroid_time:
+                    self._create_asteroids()
+                    self.next_asteroid_time = current_time + random.randint(self.settings.min_time, self.settings.max_time)
+
+                # Actualizar asteroides
+                self.asteroids.update()
             
             self.bullets.update()
             self._update_screen()
@@ -71,6 +79,7 @@ class AlienInvasion:
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
                 
+
     def _check_keydown_events(self,event):
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right=True
@@ -84,6 +93,7 @@ class AlienInvasion:
             sys.exit()
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
+
 
     def _check_keyup_events(self,event):
         if event.key == pygame.K_RIGHT:
@@ -105,6 +115,7 @@ class AlienInvasion:
         #Redraw the screen:
         self.screen.fill(self.settings.bg_color)
         self.stars.draw(self.screen)
+        self.asteroids.draw(self.screen)
         self.ship.blitme() #Draw the ship on the screen
 
         for bullet in self.bullets.sprites():
@@ -224,17 +235,12 @@ class AlienInvasion:
             star.rect.y = star_height*row
             self.stars.add(star)
 
-# Crear una instancia del juego
-game = AlienInvasion()
+    def _create_asteroids(self):
+        asteroid = Asteroid(self)
+        self.asteroids.add(asteroid)
 
-# Usar un subproceso para ejecutar el juego
-def run_game():
-    asyncio.run(game.run_game())
-
-game_thread = Thread(target=run_game)
-game_thread.start()
-
-# Rutas FastAPI
-@app.get("/")
-def read_root():
-    return {"message": "Alien Invasion is running!"}
+if __name__ == '__main__':
+    # Make a game instance, and run the game.
+    ai = AlienInvasion()
+    #ai.run_game()
+    asyncio.run(ai.run_game())
