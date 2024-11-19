@@ -33,7 +33,7 @@ class Alien(Sprite):
             image_path = os.path.join(folder_path, random.choice(images))
             image = pygame.image.load(image_path)
             
-            image = pygame.transform.scale(image, (120, 120))
+            image = pygame.transform.scale(image, (80, 80))
             return image
         except Exception as e:
             print(f"Error cargando imágenes: {e}")
