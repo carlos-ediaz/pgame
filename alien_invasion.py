@@ -15,7 +15,7 @@ from game_stats import GameStats
 from explosion import Explosion
 from asteroid import Asteroid
 from planet import Planet
-
+from button import Button
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -47,6 +47,7 @@ class AlienInvasion:
         self._create_asteroids()
         self._create_fleet()
         
+        self.play_button = Button(self, "Play")
 
     async def run_game(self):
         """Start the main loop for the game."""
@@ -85,8 +86,24 @@ class AlienInvasion:
                 self._check_keydown_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
-                
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_button(mouse_pos)
 
+    def _check_play_button(self, mouse_pos):
+        button_clicked = self.play_button.rect.collidepoint(mouse_pos)
+        if button_clicked and not self.stats.game_active:
+
+            self.settings.initialize_dynamic_settings()
+            self.stats.reset_stats()
+            self.stats.game_active = True
+
+            self.aliens.empty()
+            self.bullets.empty()
+
+            self._create_fleet()
+            self.ship.center_ship()
+                
     def _check_keydown_events(self,event):
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right=True
@@ -100,7 +117,6 @@ class AlienInvasion:
             sys.exit()
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
-
 
     def _check_keyup_events(self,event):
         if event.key == pygame.K_RIGHT:
@@ -132,7 +148,9 @@ class AlienInvasion:
         self.aliens.draw(self.screen)
         self.explosions.update()
         self.explosions.draw(self.screen)
-        
+        if not self.stats.game_active:
+            self.play_button.draw_button()
+
         # Make the most recently drawn screen visible.
         pygame.display.flip()
 
@@ -156,6 +174,7 @@ class AlienInvasion:
         if not self.aliens:
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
 
     def _create_fleet(self):
         alien = Alien(self)
