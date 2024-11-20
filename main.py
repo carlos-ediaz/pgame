@@ -14,6 +14,8 @@ from star import Star
 from game_stats import GameStats
 from explosion import Explosion
 from asteroid import Asteroid
+from planet import Planet
+
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -29,16 +31,19 @@ class AlienInvasion:
         pygame.display.set_caption("Alien Invasion")
 
         self.stats = GameStats(self)
+        self.planets = GameStats(self)
         self.ship = Ship(self)
 
         self.explosions = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
+        self.planets = pygame.sprite.Group()
         self.asteroids = pygame.sprite.Group()
         self.next_asteroid_time = pygame.time.get_ticks() + random.randint(self.settings.min_time, self.settings.max_time)
 
         self._create_stars()
+        self._create_planets()
         self._create_asteroids()
         self._create_fleet()
         
@@ -53,6 +58,8 @@ class AlienInvasion:
                 self.ship.update()
                 self._update_bullets()
                 self._update_aliens()
+                self._update_stars()
+                self._update_planets()
                 current_time = pygame.time.get_ticks()
                 if current_time >= self.next_asteroid_time:
                     self._create_asteroids()
@@ -115,6 +122,7 @@ class AlienInvasion:
         #Redraw the screen:
         self.screen.fill(self.settings.bg_color)
         self.stars.draw(self.screen)
+        self.planets.draw(self.screen)
         self.asteroids.draw(self.screen)
         self.ship.blitme() #Draw the ship on the screen
 
@@ -181,6 +189,10 @@ class AlienInvasion:
         self._check_aliens_bottom()
 
     def _ship_hit(self):
+        explosion = Explosion(self, self.ship.rect.center)
+        self.explosions.add(explosion)
+        sleep(0.5)
+
         if self.stats.ships_left>0:
 
             self.stats.ships_left -=1
@@ -191,7 +203,7 @@ class AlienInvasion:
             self._create_fleet()
             self.ship.center_ship()
 
-            sleep(0.5)
+           
         else:
             self.stats.game_active = False
 
@@ -235,9 +247,48 @@ class AlienInvasion:
             star.rect.y = star_height*row
             self.stars.add(star)
 
+    def _update_stars(self):
+        """Update the position of stars and reset them when they leave the screen."""
+        for star in self.stars.sprites():
+            star.rect.y += self.settings.star_speed
+            # Reset star to the top if it goes out of screen
+            if star.rect.top > self.settings.screen_height:
+                star.rect.y = 0#-star.rect.height
+                star.rect.x = random.randint(0, self.settings.screen_width - star.rect.width)
+
     def _create_asteroids(self):
         asteroid = Asteroid(self)
         self.asteroids.add(asteroid)
+
+    def _create_planets(self):
+        planet = Planet(self)
+        planet_width, planet_height = planet.rect.size
+        available_space_x = self.settings.screen_width
+        number_planets_x = available_space_x // (planet_width)
+
+        available_space_y = self.settings.screen_height
+        number_rows = available_space_y // (planet_height)
+
+        self._create_planet(number_rows, number_planets_x, self.settings.number_of_planets)
+    
+    def _create_planet(self, rows, columns, total_planets):
+        for i in range(total_planets):
+            planet=Planet(self)
+            planet_width, planet_height = planet.rect.size
+            col=randint(0,columns)
+            row=randint(0,rows)
+            planet.rect.x = planet_width*col
+            planet.rect.y = planet_height*row
+            self.planets.add(planet)
+
+    def _update_planets(self):
+        """Update the position of stars and reset them when they leave the screen."""
+        for planet in self.planets.sprites():
+            planet.rect.y += self.settings.planet_speed
+            # Reset star to the top if it goes out of screen
+            if planet.rect.top > self.settings.screen_height:
+                planet.rect.y = 0#-star.rect.height
+                planet.rect.x = random.randint(0, self.settings.screen_width - planet.rect.width)
 
 if __name__ == '__main__':
     # Make a game instance, and run the game.
