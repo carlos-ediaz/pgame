@@ -3,7 +3,7 @@ from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 
 PORT = int(os.environ.get("PORT", 8000))  # Puerto dinámico de Heroku
-DIRECTORY = "build"  # Carpeta generada por Pygbag
+DIRECTORY = "build/web"  # Carpeta generada por Pygbag
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
