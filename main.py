@@ -16,6 +16,7 @@ from explosion import Explosion
 from asteroid import Asteroid
 from planet import Planet
 from button import Button
+from scoreboard import Scoreboard
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -31,7 +32,7 @@ class AlienInvasion:
         pygame.display.set_caption("Alien Invasion")
 
         self.stats = GameStats(self)
-        self.planets = GameStats(self)
+        self.sb = Scoreboard(self)
         self.ship = Ship(self)
 
         self.explosions = pygame.sprite.Group()
@@ -97,6 +98,9 @@ class AlienInvasion:
             self.settings.initialize_dynamic_settings()
             self.stats.reset_stats()
             self.stats.game_active = True
+            self.sb.prep_score()
+            self.sb.prep_level()
+            self.sb.prep_lives()
 
             self.aliens.empty()
             self.bullets.empty()
@@ -146,11 +150,12 @@ class AlienInvasion:
             bullet.draw_bullet()
 
         self.aliens.draw(self.screen)
+        self.sb.show_score()
         self.explosions.update()
         self.explosions.draw(self.screen)
         if not self.stats.game_active:
             self.play_button.draw_button()
-
+            self.sb.check_high_score()
         # Make the most recently drawn screen visible.
         pygame.display.flip()
 
@@ -166,15 +171,21 @@ class AlienInvasion:
         collisions = pygame.sprite.groupcollide(self.bullets,self.aliens,True,True)
         if collisions:
             for aliens in collisions.values():
+                self.stats.score += self.settings.alien_points * len(aliens)
                 for alien in aliens:
                     # Crear una explosión en la posición del alien destruido
                     explosion = Explosion(self, alien.rect.center)
                     self.explosions.add(explosion)
+            self.sb.prep_score()
+            self.sb.check_high_score()
 
         if not self.aliens:
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
+
+            self.stats.level +=1
+            self.sb.prep_level()
 
     def _create_fleet(self):
         alien = Alien(self)
@@ -215,13 +226,13 @@ class AlienInvasion:
         if self.stats.ships_left>0:
 
             self.stats.ships_left -=1
+            self.sb.prep_lives()
 
             self.aliens.empty()
             self.bullets.empty()
 
             self._create_fleet()
             self.ship.center_ship()
-
            
         else:
             self.stats.game_active = False
